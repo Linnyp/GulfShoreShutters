@@ -1,0 +1,267 @@
+---
+import { business, serviceAreas, pricing, warranty, leadTime } from '../data/site';
+
+// Cloudflare's documented always-passes test key. Override in .env / the Pages
+// dashboard with the real site key before launch.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA';
+
+const fieldClass =
+  'w-full rounded-lg border border-olive-200 bg-ivory-50 px-4 py-3 text-olive-900 placeholder:text-olive-300 focus:border-olive-500 focus:outline-none focus:ring-2 focus:ring-olive-200';
+const labelClass = 'block text-sm font-semibold text-olive-800';
+---
+
+<section id="quote" class="bg-olive-900 py-20 text-ivory-100 md:py-28">
+  <div class="container-page grid gap-14 lg:grid-cols-[1fr_minmax(0,34rem)]">
+    <div data-reveal>
+      <p class="eyebrow text-gold-400">Free Quote</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-ivory-50 sm:text-5xl">
+        Tell us about your windows
+      </h2>
+      <p class="mt-6 max-w-lg text-lg leading-relaxed text-olive-200">
+        We will get back to you within one business day. No obligation, no pressure, and a written
+        itemized quote when we are done.
+      </p>
+
+      <dl class="mt-10 space-y-6">
+        <div>
+          <dt class="eyebrow text-olive-300">Prefer to talk?</dt>
+          <dd class="mt-2">
+            <a
+              href={`tel:${business.phoneHref}`}
+              data-cta="form-call"
+              class="font-display text-3xl text-ivory-50 hover:text-gold-400"
+            >
+              {business.phone}
+            </a>
+            <p class="mt-1 text-sm text-olive-200">Call or text — measurements welcome.</p>
+          </dd>
+        </div>
+        <div>
+          <dt class="eyebrow text-olive-300">Hours</dt>
+          <dd class="mt-2 text-olive-200">{business.hours}</dd>
+        </div>
+        <div>
+          <dt class="eyebrow text-olive-300">Service area</dt>
+          <dd class="mt-2 leading-relaxed text-olive-200">
+            {serviceAreas.join(' · ')} and surrounding communities across Lee, Charlotte and Collier counties.
+          </dd>
+        </div>
+      </dl>
+
+      <ul class="mt-10 space-y-2 border-t border-ivory-100/15 pt-8 text-sm text-olive-200">
+        <li>${pricing.low}&ndash;${pricing.high} per square foot, installed</li>
+        <li>{pricing.deposit}</li>
+        <li>{leadTime} from deposit to installation</li>
+        <li>{warranty.wood} warranty on wood · {warranty.vinyl} on vinyl</li>
+      </ul>
+    </div>
+
+    <div class="rounded-2xl bg-ivory-50 p-6 shadow-lg sm:p-8" data-reveal>
+      <form id="quote-form" action="/api/quote" method="post" novalidate class="space-y-5">
+        <!-- Honeypot: hidden from users, irresistible to naive bots. -->
+        <div class="absolute left-[-9999px]" aria-hidden="true">
+          <label for="company">Company</label>
+          <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+        <input type="hidden" name="rendered_at" id="rendered_at" />
+
+        <fieldset>
+          <legend class={labelClass}>What would you like?</legend>
+          <div class="mt-2 grid gap-3 sm:grid-cols-2">
+            {
+              [
+                {
+                  value: 'In-home consultation',
+                  title: 'A free in-home visit',
+                  body: 'Samples brought to you, every opening measured.',
+                  checked: true,
+                },
+                {
+                  value: 'Phone ballpark',
+                  title: 'A ballpark by phone',
+                  body: 'I have measurements and just want a number.',
+                  checked: false,
+                },
+              ].map((option) => (
+                <label class="flex cursor-pointer gap-3 rounded-lg border border-olive-200 p-4 transition has-[:checked]:border-olive-600 has-[:checked]:bg-olive-50">
+                  <input
+                    type="radio"
+                    name="quoteType"
+                    value={option.value}
+                    checked={option.checked}
+                    class="mt-1 h-4 w-4 shrink-0 accent-olive-600"
+                  />
+                  <span>
+                    <span class="block text-sm font-semibold text-olive-900">{option.title}</span>
+                    <span class="mt-1 block text-sm text-olive-600">{option.body}</span>
+                  </span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class={labelClass} for="name">Name <span class="text-olive-400">*</span></label>
+            <input id="name" name="name" type="text" required autocomplete="name" class={`mt-2 ${fieldClass}`} />
+          </div>
+          <div>
+            <label class={labelClass} for="phone">Phone <span class="text-olive-400">*</span></label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              autocomplete="tel"
+              inputmode="tel"
+              placeholder="(239) 555-0100"
+              class={`mt-2 ${fieldClass}`}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class={labelClass} for="email">Email <span class="text-olive-400">*</span></label>
+          <input id="email" name="email" type="email" required autocomplete="email" class={`mt-2 ${fieldClass}`} />
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class={labelClass} for="city">City</label>
+            <select id="city" name="city" class={`mt-2 ${fieldClass}`}>
+              <option value="">Select your city</option>
+              {serviceAreas.map((area) => <option value={area}>{area}</option>)}
+              <option value="Other">Other / nearby</option>
+            </select>
+          </div>
+          <div>
+            <label class={labelClass} for="windows">Approx. number of windows</label>
+            <select id="windows" name="windows" class={`mt-2 ${fieldClass}`}>
+              <option value="">Not sure yet</option>
+              <option value="1-4">1–4</option>
+              <option value="5-9">5–9</option>
+              <option value="10-19">10–19</option>
+              <option value="20+">20 or more</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class={labelClass} for="project">Project type</label>
+            <select id="project" name="project" class={`mt-2 ${fieldClass}`}>
+              <option value="">Select one</option>
+              <option value="Whole home">Whole home</option>
+              <option value="A few rooms">A few rooms</option>
+              <option value="Specialty shapes">Arches / bays / specialty shapes</option>
+              <option value="Sliders or French doors">Sliding glass or French doors</option>
+              <option value="New construction">New construction</option>
+            </select>
+          </div>
+          <div>
+            <label class={labelClass} for="timeframe">Timeframe</label>
+            <select id="timeframe" name="timeframe" class={`mt-2 ${fieldClass}`}>
+              <option value="">Select one</option>
+              <option value="ASAP">As soon as possible</option>
+              <option value="1-3 months">1–3 months</option>
+              <option value="3+ months">3+ months</option>
+              <option value="Just researching">Just researching</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class={labelClass} for="message">
+            Anything else we should know?
+            <span class="mt-1 block font-normal text-olive-600">
+              If you have measurements, paste them here and we can price it without a visit.
+            </span>
+          </label>
+          <textarea id="message" name="message" rows="4" class={`mt-2 ${fieldClass}`}></textarea>
+        </div>
+
+        <div class="cf-turnstile" data-sitekey={siteKey} data-theme="light" data-size="flexible"></div>
+
+        <button
+          type="submit"
+          data-cta="form-submit"
+          class="w-full rounded-full bg-olive-600 px-6 py-3.5 text-base font-semibold text-ivory-50 transition hover:bg-olive-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Send my request
+        </button>
+
+        <p id="form-status" role="status" aria-live="polite" class="min-h-5 text-sm"></p>
+
+        <p class="text-xs leading-relaxed text-olive-500">
+          By submitting you agree to be contacted about your project. We never sell or share your
+          information.
+        </p>
+      </form>
+
+      <div id="quote-success" hidden class="py-10 text-center">
+        <span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-olive-100 text-olive-700">
+          <svg aria-hidden="true" viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <h3 class="mt-5 font-display text-2xl text-olive-900">Request received</h3>
+        <p class="mx-auto mt-3 max-w-sm leading-relaxed text-olive-700">
+          Thank you — we will get back to you within one business day. If you need us sooner, call
+          <a class="font-semibold underline underline-offset-4" href={`tel:${business.phoneHref}`}>{business.phone}</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
+<script>
+  const form = document.getElementById('quote-form') as HTMLFormElement | null;
+  const status = document.getElementById('form-status');
+  const success = document.getElementById('quote-success');
+  const renderedAt = document.getElementById('rendered_at') as HTMLInputElement | null;
+
+  if (renderedAt) renderedAt.value = String(Date.now());
+
+  const setStatus = (message: string, tone: 'error' | 'info') => {
+    if (!status) return;
+    status.textContent = message;
+    status.className = `min-h-5 text-sm ${tone === 'error' ? 'text-red-600' : 'text-olive-600'}`;
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (!form.reportValidity()) return;
+
+    const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submit.disabled = true;
+    setStatus('Sending your request…', 'info');
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(form),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error ?? 'Something went wrong. Please call us instead.');
+      }
+
+      form.hidden = true;
+      success?.removeAttribute('hidden');
+      success?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Google Ads / GA4 conversion hook — wire up once tracking is installed.
+      (window as any).dataLayer?.push({ event: 'quote_request_submitted' });
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Submission failed.', 'error');
+      submit.disabled = false;
+      (window as any).turnstile?.reset();
+    }
+  });
+</script>

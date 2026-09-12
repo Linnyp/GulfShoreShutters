@@ -1,0 +1,97 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/logo.png';
+import { business, serviceAreas, manufacturer, warranty } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-olive-800 bg-olive-900 py-14 text-olive-200">
+  <div class="container-page grid gap-10 md:grid-cols-3">
+    <div>
+      {/* The logo asset is transparent so it can sit on the ivory header. Here the mark is
+          dark green on near-black, so the footer draws the ivory plate back in CSS —
+          padded and rounded, rather than the hard rectangle that used to be baked into
+          the file. Header stays plateless. */}
+      <span class="inline-block rounded-lg bg-ivory-100 px-3 py-2">
+        <Image
+          src={logo}
+          alt={business.name}
+          widths={[240, 360]}
+          sizes="120px"
+          loading="lazy"
+          class="h-14 w-auto"
+        />
+      </span>
+      <address class="mt-5 not-italic leading-relaxed">
+        {/* Service-area business — the registered address is residential and is withheld. */}
+        {business.address.city}, {business.address.region} {business.address.postalCode}<br />
+        <a class="mt-2 inline-block hover:text-ivory-50" href={`tel:${business.phoneHref}`}>{business.phone}</a><br />
+        <a class="hover:text-ivory-50" href={`mailto:${business.email}`}>{business.email}</a>
+      </address>
+      <p class="mt-5 text-sm leading-relaxed text-olive-300">
+        Family owned and operated. Shutters built in {manufacturer.city} by {manufacturer.name}.
+      </p>
+    </div>
+
+    <div>
+      <p class="eyebrow text-ivory-50">Service Area</p>
+      <p class="mt-4 leading-relaxed">{serviceAreas.join(' · ')}</p>
+      <p class="mt-4 text-sm text-olive-300">Lee, Charlotte and Collier counties.</p>
+      <p class="mt-4 text-sm">{business.hours}</p>
+    </div>
+
+    <div>
+      <p class="eyebrow text-ivory-50">Explore</p>
+      <ul class="mt-4 space-y-2">
+        {
+          [
+            { href: '#shutters', label: 'What We Do' },
+            { href: '#pricing', label: 'Pricing' },
+            { href: '#gallery', label: 'Our Work' },
+            { href: '#who', label: 'Who Does What' },
+            { href: '#process', label: 'How It Works' },
+            { href: '#faq', label: 'FAQ' },
+            { href: '#quote', label: 'Free Quote' },
+          ].map((link) => (
+            <li>
+              <a href={link.href} class="hover:text-ivory-50">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-page mt-12 space-y-2 border-t border-ivory-100/10 pt-6 text-sm text-olive-300">
+    <p>
+      {warranty.wood} warranty on wood shutters · {warranty.vinyl} on vinyl. Gulf Shore Shutters is a
+      retailer of custom plantation shutters; final measure and installation are performed by
+      {' '}{manufacturer.name}.
+    </p>
+    <p>© {year} {business.legalName}. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- Sticky mobile call bar: most local-service traffic is mobile and calls convert fastest. -->
+<div class="fixed inset-x-0 bottom-0 z-40 border-t border-olive-200 bg-ivory-50/95 p-3 backdrop-blur sm:hidden">
+  <div class="flex gap-3">
+    <a
+      href={`tel:${business.phoneHref}`}
+      data-cta="sticky-call"
+      class="flex-1 rounded-full bg-olive-600 px-4 py-3 text-center text-sm font-semibold text-ivory-50"
+    >
+      Call or Text
+    </a>
+    <a
+      href="#quote"
+      data-cta="sticky-quote"
+      class="flex-1 rounded-full border border-olive-300 px-4 py-3 text-center text-sm font-semibold text-olive-800"
+    >
+      Free Quote
+    </a>
+  </div>
+</div>
+<div class="h-[4.5rem] sm:hidden" aria-hidden="true"></div>

@@ -1,0 +1,19 @@
+!.env.example
+*.log
+.DS_Store
+.astro/
+.env
+.env.*
+.wrangler/
+dist
+dist/
+node_modules/
+photos-original
+
+# Local tooling state, not part of the project.
+.claude/
+.firecrawl/
+
+# Internal briefs — positioning, pricing rationale, competitor research and open
+# owner questions. Source comments reference these paths; the files stay local.
+.agents/

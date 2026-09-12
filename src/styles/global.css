@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+/*
+ * Palette comes from the Gulf Shore Shutters brand board:
+ *   Deep Olive #465448 · Warm Ivory #F6F1E7 · Charcoal #292B29 · Champagne Gold #B49A6A
+ * The four brand values are marked below; the rest of each ramp is tinted from them
+ * so there is enough contrast range for body text, borders and hover states.
+ */
+@theme {
+  --color-olive-50: #f4f6f3;
+  --color-olive-100: #e5e9e4;
+  --color-olive-200: #ccd4ca;
+  --color-olive-300: #a8b5a6;
+  --color-olive-400: #7d8f7c;
+  --color-olive-500: #5d715c;
+  --color-olive-600: #465448; /* brand — Deep Olive */
+  --color-olive-700: #3a453b;
+  --color-olive-800: #30382f;
+  --color-olive-900: #292b29; /* brand — Charcoal */
+
+  --color-ivory-50: #fdfbf7;
+  --color-ivory-100: #f6f1e7; /* brand — Warm Ivory */
+  --color-ivory-200: #ede5d5;
+  --color-ivory-300: #ded1b8;
+
+  --color-gold-300: #d8c9a9;
+  --color-gold-400: #c6b189; /* text-safe on olive-900 (6.8:1) */
+  --color-gold-500: #b49a6a; /* brand — Champagne Gold. Decorative only: 2.6:1 on ivory. */
+  --color-gold-600: #9a8156;
+  /* Champagne Gold is too light to be text on a light background — even the brand value
+     itself only reaches 2.6:1. This shade is the one to use for gold *text* on ivory or
+     over the material textures (7.8:1 and 5.6:1). */
+  --color-gold-700: #5f4e2b;
+
+  /* The logo wordmark is a high-contrast serif set in wide caps. Nothing is fetched
+     over the network — see README before adding self-hosted faces. */
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-olive-900);
+    background: var(--color-ivory-50);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-olive-600);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/*
+ * Scroll reveal.
+ *
+ * The hidden state is gated on `data-motion="on"`, which the inline script in BaseLayout
+ * sets only when JS runs and the visitor has not asked for reduced motion. Without that
+ * gate a JS failure would leave the whole page invisible — the content must never depend
+ * on the animation running.
+ *
+ * The hero is deliberately not revealed: it is the LCP element and it should paint as
+ * fast as it can, not fade in.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-motion='on'] [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s cubic-bezier(0.16, 0.84, 0.44, 1);
+  }
+
+  [data-motion='on'] [data-reveal][data-revealed] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The header is flat until the page moves under it, then it lifts off the content. */
+header[data-scrolled] {
+  box-shadow: 0 10px 26px -22px rgb(41 43 41 / 0.55);
+}
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 78rem;
+  padding-inline: 1.25rem;
+}
+
+/* The wide-tracked caps used for section eyebrows, matching the logo lockup. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}

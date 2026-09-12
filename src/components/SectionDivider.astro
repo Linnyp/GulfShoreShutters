@@ -1,0 +1,104 @@
+---
+/**
+ * Decorative transition between two sections.
+ *
+ * The whole page is stacked full-width bands, which is what makes a template look like a
+ * template. These dividers cut the seam on an angle and echo a tilted louver — the one
+ * shape the business actually sells — so the transitions carry the brand instead of being
+ * a horizontal rule.
+ *
+ * `from`/`to` are palette token names (see styles/global.css), NOT Tailwind classes: they
+ * are resolved through `var(--color-…)` inline so the pair can be passed as a prop without
+ * Tailwind needing to see the class name at build time. `from` must match the background of
+ * the section above and `to` the section below, or the seam will show as a hard edge.
+ *
+ * Where the two sections share a background (`from === to`) the cut is invisible by design
+ * and the louver lines are the whole divider — use `variant="louvers"` for those.
+ *
+ * Purely presentational: aria-hidden, no text, and it is never the only thing separating
+ * two sections semantically.
+ */
+type Token =
+  | 'ivory-50'
+  | 'ivory-100'
+  | 'ivory-200'
+  | 'olive-50'
+  | 'olive-900'
+  | 'gold-400'
+  | 'gold-500';
+
+interface Props {
+  from: Token;
+  to: Token;
+  /** diagonal: plain angled cut · louvers: angled cut with tilted slats above it · chevron: shallow centred V */
+  variant?: 'diagonal' | 'louvers' | 'chevron';
+  /** Mirror the angle. Alternating down the page keeps the rhythm from looking mechanical. */
+  flip?: boolean;
+  /** Hairline + slat colour. gold-400 reads on the dark olive bands, gold-500 on ivory. */
+  accent?: 'gold-400' | 'gold-500';
+  class?: string;
+}
+
+const { from, to, variant = 'diagonal', flip = false, accent = 'gold-500', class: className = '' } = Astro.props;
+
+/* One 1440×90 viewBox stretched to any width (preserveAspectRatio="none"), so the angle
+   shallows out on wide screens instead of the divider eating vertical space on mobile. */
+const W = 1440;
+const H = 90;
+
+/* Left and right y of the cut. The shallow 64px drop is deliberate — a steeper angle turns
+   into a graphic element competing with the photography. */
+const yLeft = flip ? 12 : 76;
+const yRight = flip ? 76 : 12;
+
+const cutPath =
+  variant === 'chevron'
+    ? flip
+      ? `M0 74 L${W / 2} 14 L${W} 74 V${H} H0 Z`
+      : `M0 14 L${W / 2} 74 L${W} 14 V${H} H0 Z`
+    : `M0 ${yLeft} L${W} ${yRight} V${H} H0 Z`;
+
+const cutLine =
+  variant === 'chevron'
+    ? flip
+      ? `M0 74 L${W / 2} 14 L${W} 74`
+      : `M0 14 L${W / 2} 74 L${W} 14`
+    : `M0 ${yLeft} L${W} ${yRight}`;
+
+/* Slats sit parallel to the cut and march up out of frame, so the pattern fades on its own
+   rather than needing a gradient mask. */
+const slats = [1, 2, 3, 4, 5].map((step) => ({
+  y1: yLeft - step * 13,
+  y2: yRight - step * 13,
+  opacity: Math.max(0.06, 0.34 - step * 0.06),
+}));
+---
+
+<div
+  aria-hidden="true"
+  class:list={['w-full', className]}
+  style={`--divider-from: var(--color-${from}); --divider-to: var(--color-${to}); --divider-accent: var(--color-${accent});`}
+>
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    preserveAspectRatio="none"
+    class="block h-10 w-full sm:h-14 md:h-20"
+    role="presentation"
+    focusable="false"
+  >
+    <rect width={W} height={H} fill="var(--divider-from)" />
+
+    {
+      variant === 'louvers' && (
+        <g stroke="var(--divider-accent)" stroke-width="2.5" stroke-linecap="round">
+          {slats.map((slat) => (
+            <line x1="0" y1={slat.y1} x2={W} y2={slat.y2} opacity={slat.opacity} />
+          ))}
+        </g>
+      )
+    }
+
+    <path d={cutPath} fill="var(--divider-to)" />
+    <path d={cutLine} fill="none" stroke="var(--divider-accent)" stroke-width="2" opacity="0.55" />
+  </svg>
+</div>

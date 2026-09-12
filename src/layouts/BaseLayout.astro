@@ -1,0 +1,185 @@
+---
+import '../styles/global.css';
+import { business, serviceAreas, faqs, pricing, manufacturer } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  noindex?: boolean;
+}
+
+const { title, description, image = '/images/og-image.jpg', noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(image, Astro.site).href;
+
+/*
+ * Service-area business: `address` deliberately carries no streetAddress, because the
+ * registered address is residential. `areaServed` is what Google leans on for local
+ * intent anyway. The Google Business Profile must be configured the same way, and its
+ * NAP must match the footer exactly.
+ *
+ * No `aggregateRating` and no `review` — there are no genuine first-party reviews yet,
+ * and invented review markup is a manual-action risk.
+ */
+const localBusiness = {
+  '@context': 'https://schema.org',
+  '@type': 'HomeAndConstructionBusiness',
+  '@id': `${Astro.site}#business`,
+  name: business.name,
+  legalName: business.legalName,
+  description,
+  url: canonical,
+  telephone: business.phone,
+  email: business.email,
+  image: ogImage,
+  foundingDate: String(business.established),
+  priceRange: business.priceRange,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: business.address.city,
+    addressRegion: business.address.region,
+    postalCode: business.address.postalCode,
+    addressCountry: business.address.country,
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: business.geo.latitude,
+    longitude: business.geo.longitude,
+  },
+  openingHours: business.openingHours,
+  areaServed: serviceAreas.map((area) => ({
+    '@type': 'City',
+    name: `${area}, FL`,
+  })),
+  makesOffer: {
+    '@type': 'Offer',
+    itemOffered: {
+      '@type': 'Product',
+      name: 'Custom plantation shutters',
+      brand: { '@type': 'Brand', name: manufacturer.name },
+    },
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      minPrice: pricing.low,
+      maxPrice: pricing.high,
+      priceCurrency: 'USD',
+      unitText: 'square foot, installed',
+    },
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={business.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#465448" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {
+      /* Opts the page into the scroll-reveal styles, before first paint so nothing flashes
+         in and then hides. Anything that leaves this unset — JS off, script error, reduced
+         motion — gets the page fully visible with no animation, which is the safe default. */
+    }
+    <script is:inline>
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.dataset.motion = 'on';
+      }
+    </script>
+
+    {
+      /* The hero is the LCP element. It is an <Image> with a build-time hashed URL, so it
+         carries loading="eager" + fetchpriority="high" rather than a hand-written preload
+         that would silently rot on the next build. */
+    }
+
+    {
+      !noindex && (
+        <>
+          <script is:inline type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
+          <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+        </>
+      )
+    }
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-olive-800 focus:px-4 focus:py-2 focus:text-ivory-50"
+    >
+      Skip to content
+    </a>
+    <slot />
+
+    <script>
+      /* Reveal on scroll, plus the header's scrolled state. Both are decorative: if this
+         script never runs the page is simply static, because the hidden state is gated on
+         the `data-motion` flag set in the head. */
+      const items = [...document.querySelectorAll<HTMLElement>('[data-reveal]')];
+
+      const revealAll = () => items.forEach((el) => el.setAttribute('data-revealed', ''));
+
+      if (!('IntersectionObserver' in window)) {
+        revealAll();
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.setAttribute('data-revealed', '');
+              observer.unobserve(entry.target);
+            });
+          },
+          // Fires a little before the element is fully on screen, so the movement finishes
+          // as it arrives rather than starting once the reader is already looking at it.
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+        );
+
+        items.forEach((el) => {
+          // Children of a group go one after another. They cross the viewport edge at the
+          // same moment, so the stagger has to come from the delay, not the observer.
+          const group = el.closest<HTMLElement>('[data-reveal-group]');
+          if (group) {
+            const siblings = [...group.querySelectorAll<HTMLElement>(':scope > [data-reveal]')];
+            const index = siblings.indexOf(el);
+            if (index > 0) el.style.transitionDelay = `${Math.min(index * 70, 350)}ms`;
+          }
+          observer.observe(el);
+        });
+      }
+
+      const header = document.querySelector('header');
+      if (header) {
+        const onScroll = () => header.toggleAttribute('data-scrolled', window.scrollY > 8);
+        onScroll();
+        addEventListener('scroll', onScroll, { passive: true });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,100 @@
+---
+import { pricing, priceExamples, business } from '../data/site';
+---
+
+<!--
+  Square-foot pricing is correct internally but illegible to a homeowner, who thinks in
+  windows and rooms. So the rate is stated *and* translated. Dodging the price question is
+  the fastest way to lose this buyer.
+-->
+<section id="pricing" class="bg-ivory-100 py-20 md:py-28">
+  <div class="container-page grid gap-12 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-16">
+    <div data-reveal>
+      <p class="eyebrow text-olive-500">Pricing</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
+        Here is the price. No appointment required to see it.
+      </h2>
+
+      <p class="mt-7 font-display text-6xl text-olive-600">
+        ${pricing.low}&ndash;${pricing.high}
+      </p>
+      <p class="mt-2 text-lg font-medium text-olive-700">{pricing.unit}</p>
+
+      <p class="mt-7 leading-relaxed text-olive-700">
+        Every other company in this trade makes you sit through a visit to find out. We would rather you
+        know now whether we are in your range — and square feet is how shutters are actually priced, so
+        that is the number we publish.
+      </p>
+
+      <dl class="mt-8 space-y-4 border-t border-olive-200 pt-8 text-sm">
+        <div class="flex gap-4">
+          <dt class="w-28 shrink-0 font-semibold text-olive-900">Deposit</dt>
+          <dd class="text-olive-700">{pricing.deposit}</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="w-28 shrink-0 font-semibold text-olive-900">Payment</dt>
+          <dd class="text-olive-700">{pricing.payment}</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="w-28 shrink-0 font-semibold text-olive-900">Quotes</dt>
+          <dd class="text-olive-700">
+            Written and itemized, with no expiration and no discount that vanishes at the door.
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <div>
+      <h3 class="font-display text-2xl text-olive-900">What that works out to</h3>
+      <p class="mt-2 text-olive-700">Straight arithmetic at the rate above, installed.</p>
+
+      <div class="mt-7 overflow-x-auto">
+        <table class="w-full border-collapse text-left">
+          <caption class="sr-only">
+            Example plantation shutter prices by opening size at ${pricing.low}–${pricing.high} per square foot
+          </caption>
+          <thead>
+            <tr class="border-b border-olive-300">
+              <th scope="col" class="pb-3 pr-4 text-sm font-semibold text-olive-900">Opening</th>
+              <th scope="col" class="pb-3 pr-4 text-sm font-semibold text-olive-900">Size</th>
+              <th scope="col" class="pb-3 pr-4 text-right text-sm font-semibold text-olive-900">Sq ft</th>
+              <th scope="col" class="pb-3 text-right text-sm font-semibold text-olive-900">Installed</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-olive-200">
+            {
+              priceExamples.map((row) => (
+                <tr>
+                  <th scope="row" class="py-4 pr-4 font-medium text-olive-900">{row.opening}</th>
+                  <td class="py-4 pr-4 text-olive-700">{row.size}</td>
+                  <td class="py-4 pr-4 text-right tabular-nums text-olive-700">{row.sqft}</td>
+                  <td class="py-4 text-right font-semibold tabular-nums text-olive-900">{row.range}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="mt-6 text-sm leading-relaxed text-olive-600">
+        These are worked examples, not a quote. Specialty shapes, material upgrades and very small openings
+        can price differently — which is what the free measure is for.
+      </p>
+
+      <div class="mt-8 rounded-2xl border border-olive-200 bg-ivory-50 p-7">
+        <h4 class="font-display text-xl text-olive-900">Just want a ballpark?</h4>
+        <p class="mt-2 leading-relaxed text-olive-700">
+          If you already have rough measurements, call or text them over and we will price it on the phone.
+          You should not have to let a salesperson into your house to find out what something costs.
+        </p>
+        <a
+          href={`tel:${business.phoneHref}`}
+          data-cta="pricing-call"
+          class="mt-5 inline-flex items-center justify-center rounded-full bg-olive-600 px-6 py-3 text-sm font-semibold text-ivory-50 transition hover:bg-olive-700"
+        >
+          Call or text {business.phone}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

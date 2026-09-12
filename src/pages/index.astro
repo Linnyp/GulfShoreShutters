@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import About from '../components/About.astro';
+import Services from '../components/Services.astro';
+import Pricing from '../components/Pricing.astro';
+import Gallery from '../components/Gallery.astro';
+import WhyShutters from '../components/WhyShutters.astro';
+import Process from '../components/Process.astro';
+import Faq from '../components/Faq.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import Footer from '../components/Footer.astro';
+import SectionDivider from '../components/SectionDivider.astro';
+import { business, pricing } from '../data/site';
+
+const title = `Plantation Shutters in Cape Coral & Fort Myers | ${business.name}`;
+const description = `Custom plantation shutters for Lee, Charlotte and Collier counties. $${pricing.low}–$${pricing.high} per square foot installed, built in Fort Myers, lifetime warranty on wood. Free in-home consultation or a ballpark by phone.`;
+---
+
+<BaseLayout title={title} description={description}>
+  <Header />
+  <main id="main">
+    {/* Each divider's `from` must match the section above it and `to` the section below —
+        change a section background and the pair here has to change with it. The angle is
+        alternated down the page, and the two seams where the backgrounds match
+        (Pricing→Gallery, Process→Faq) use `louvers`, whose slats read on their own. */}
+    <Hero />
+    <SectionDivider from="ivory-100" to="olive-900" variant="louvers" />
+    {/* The honest retailer/manufacturer split sits high on purpose: with no reviews yet,
+        Devlin's thirty years is the only established-track-record proof available. */}
+    <HowItWorks />
+    <SectionDivider from="olive-900" to="ivory-100" flip accent="gold-400" />
+    {/* The owner's face and name directly after the retailer/manufacturer split: with no
+        reviews yet, a real person a prospect can picture in their living room is the
+        trust signal, so it stays high on the page. */}
+    <About />
+    <SectionDivider from="ivory-100" to="ivory-50" variant="chevron" />
+    <Services />
+    <SectionDivider from="ivory-50" to="ivory-100" flip />
+    <Pricing />
+    <SectionDivider from="ivory-100" to="ivory-100" variant="louvers" />
+    <Gallery />
+    <SectionDivider from="ivory-100" to="ivory-100" variant="louvers" flip />
+    <WhyShutters />
+    <SectionDivider from="ivory-100" to="ivory-50" />
+    <Process />
+    <SectionDivider from="ivory-50" to="ivory-50" variant="louvers" flip />
+    <Faq />
+    <SectionDivider from="ivory-50" to="olive-900" variant="chevron" flip />
+    <QuoteForm />
+  </main>
+  <Footer />
+</BaseLayout>

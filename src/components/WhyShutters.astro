@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+import canalImage from '../assets/canal-sliders.jpg';
+
+const reasons = [
+  {
+    title: 'They are real property',
+    body: 'Shutters are built into the home like crown moulding or trim. They transfer with the house and hold their value — the only window covering that does not depreciate to nothing.',
+  },
+  {
+    title: 'Light without living in the dark',
+    body: 'Tilt the louvers and you control brutal west-facing sun, protect floors and furniture from UV, and keep the room usable in August — without shutting out the view.',
+  },
+  {
+    title: 'Privacy you can adjust',
+    body: 'A mid-rail or a café-style panel gives you privacy at eye level on a street-facing window while the top louvers still pull in daylight.',
+  },
+  {
+    title: 'Easiest covering to clean',
+    body: 'A wipe with a cloth. No slats to tangle, no fabric to hold humidity, dust or salt air — which matters more here than almost anywhere.',
+  },
+];
+---
+
+<section class="bg-ivory-100 py-20 md:py-28">
+  <div class="container-page grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,24rem)] lg:gap-16">
+    <div data-reveal>
+      <p class="eyebrow text-olive-500">Why Shutters</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
+        Buy once, and it stays with the house
+      </h2>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-olive-700">
+        Blinds yellow and snap. Curtains hold humidity and lose their value the day they are hung.
+        Shutters are the permanent answer, which is also why the decision is worth getting right.
+      </p>
+
+      <dl class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+        {
+          reasons.map((reason) => (
+            <div>
+              <dt class="font-display text-2xl text-olive-900">{reason.title}</dt>
+              <dd class="mt-2 leading-relaxed text-olive-700">{reason.body}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+
+    {/* Capped below lg: a 3:4 portrait at full bleed runs taller than a phone screen. */}
+    <Image
+      data-reveal
+      src={canalImage}
+      alt="Plantation shutters on a canal-front window, louvers tilted open to boats and palms outside"
+      widths={[380, 560, 760]}
+      sizes="(min-width: 1024px) 24rem, (min-width: 640px) 20rem, 16rem"
+      loading="lazy"
+      class="mx-auto w-full max-w-[16rem] rounded-2xl object-cover shadow-lg ring-1 ring-olive-900/10 sm:max-w-xs lg:max-w-none"
+    />
+  </div>
+</section>

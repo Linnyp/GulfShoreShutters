@@ -1,0 +1,258 @@
+---
+import { Image } from 'astro:assets';
+import { gallery, business } from '../data/site';
+
+/* Astro needs a statically analysable glob to fingerprint and optimize these, so the
+   data file carries filenames and the resolution happens here. */
+const images = import.meta.glob<{ default: ImageMetadata }>('../assets/*.jpg', { eager: true });
+
+const items = gallery.map(({ file, alt }) => {
+  const entry = images[`../assets/${file}`];
+  if (!entry) throw new Error(`Gallery image not found in src/assets: ${file}`);
+  return { src: entry.default, alt };
+});
+---
+
+<!--
+  Copy on the left, one large featured photo on the right, and a scrolling thumbnail strip
+  under it that swaps the feature. One photo shown big beats six shown small here: these are
+  the owner's own installs and the only visual proof on the page, so the detail that sells
+  them — the louver line, the fit inside the opening — needs the pixels.
+
+  Every panel is in the DOM at build time rather than swapping `src` at runtime, so each one
+  keeps its Astro-generated AVIF/WebP srcset and the swap is instant with no flash. The
+  featured frame is 4:5 because the photography is overwhelmingly portrait (1500×2000); the
+  one landscape shot centre-crops acceptably. Change that ratio and re-check dining-nook.
+
+  Degrades to the first photo plus a strip of stills with JS off.
+-->
+<section id="gallery" class="bg-ivory-100 py-20 md:py-28">
+  <div class="container-page grid gap-12 lg:grid-cols-[1fr_minmax(0,32rem)] lg:items-start lg:gap-16">
+    <div data-reveal>
+      <p class="eyebrow text-olive-500">Our Work</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
+        Real jobs, photographed by the owner
+      </h2>
+      <p class="mt-6 max-w-xl text-lg leading-relaxed text-olive-700">
+        Not stock photography and not a manufacturer&rsquo;s catalogue — these are finished installs in
+        Southwest Florida homes, shot on the day.
+      </p>
+      <p class="mt-4 max-w-xl leading-relaxed text-olive-600">
+        We are a new company and we are collecting our first reviews now — so rather than borrow
+        anyone else&rsquo;s, the work here is what we are asking you to judge us on.
+      </p>
+
+      <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+        <a
+          href="#quote"
+          data-cta="gallery-quote"
+          class="inline-flex items-center justify-center rounded-full bg-olive-600 px-7 py-3.5 text-base font-semibold text-ivory-50 transition hover:bg-olive-700"
+        >
+          Book a free in-home quote
+        </a>
+        <a
+          href={`tel:${business.phoneHref}`}
+          data-cta="gallery-call"
+          class="inline-flex items-center justify-center rounded-full border border-olive-300 px-7 py-3.5 text-base font-semibold text-olive-800 transition hover:bg-ivory-200"
+        >
+          Call or text {business.phone}
+        </a>
+      </div>
+    </div>
+
+    {/* Capped below lg: at full bleed the 4:5 frame is most of a phone screen, and the
+        photo stops being one item in a gallery and becomes the section. */}
+    <div data-gallery data-reveal class="mx-auto w-full max-w-[20rem] sm:max-w-md lg:max-w-none">
+      <div class="rounded-3xl bg-ivory-50 p-2 shadow-lg ring-1 ring-olive-900/10 sm:p-2.5">
+        <div class="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-olive-100">
+          {
+            items.map((image, index) => (
+              <div
+                data-panel
+                data-index={index}
+                data-active={index === 0 ? '' : undefined}
+                aria-hidden={index === 0 ? undefined : 'true'}
+                class="absolute inset-0 opacity-0 transition-opacity duration-500 data-[active]:opacity-100"
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  widths={[420, 640, 900, 1200]}
+                  sizes="(min-width: 1024px) 32rem, (min-width: 640px) 28rem, 20rem"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  class="h-full w-full object-cover"
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      {/* Overflows on purpose: a cut-off thumbnail at the edge is the affordance that says
+          the strip scrolls. */}
+      <div
+        data-thumbs
+        role="group"
+        aria-label="Choose a photo"
+        class="-mx-1 mt-4 flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2"
+      >
+        {
+          items.map((image, index) => (
+            <button
+              type="button"
+              data-thumb
+              data-index={index}
+              data-active={index === 0 ? '' : undefined}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+              class="group h-20 w-24 shrink-0 snap-start overflow-hidden rounded-xl opacity-60 ring-1 ring-olive-900/10 transition data-[active]:opacity-100 data-[active]:ring-2 data-[active]:ring-gold-500 hover:opacity-100 sm:h-24 sm:w-28"
+            >
+              <span class="sr-only">{`Show photo ${index + 1} of ${items.length}: ${image.alt}`}</span>
+              <Image
+                src={image.src}
+                alt=""
+                widths={[112, 224]}
+                sizes="112px"
+                loading="lazy"
+                draggable={false}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((root) => {
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+    const thumbs = [...root.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
+    const strip = root.querySelector<HTMLElement>('[data-thumbs]');
+    if (!panels.length) return;
+
+    const show = (index: number) => {
+      panels.forEach((panel, i) => {
+        panel.toggleAttribute('data-active', i === index);
+        // Only the visible photo should reach a screen reader; the rest are the same
+        // six alt strings repeated.
+        panel.toggleAttribute('aria-hidden', i !== index);
+      });
+      thumbs.forEach((thumb, i) => {
+        thumb.toggleAttribute('data-active', i === index);
+        thumb.setAttribute('aria-pressed', String(i === index));
+      });
+    };
+
+    thumbs.forEach((thumb, index) => {
+      thumb.addEventListener('click', () => show(index));
+
+      // Arrow keys move through the strip the way the thumbnails look like they should.
+      thumb.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = thumbs[(index + step + thumbs.length) % thumbs.length];
+        next.focus();
+        next.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        show(thumbs.indexOf(next));
+      });
+    });
+
+    /* Drag-to-scroll the strip with a mouse or pen. Touch is left alone deliberately —
+       the browser's own momentum scrolling is better than anything reimplemented here. */
+    if (!strip) return;
+
+    /* Past this many pixels the gesture is a drag, not a click. */
+    const DRAG_THRESHOLD = 6;
+
+    let pressed = false;
+    let capturing = false;
+    let startX = 0;
+    let startScroll = 0;
+    let travel = 0;
+
+    const stopDrag = (event: PointerEvent) => {
+      if (!pressed) return;
+      pressed = false;
+      capturing = false;
+      strip.classList.remove('is-dragging');
+      if (strip.hasPointerCapture(event.pointerId)) strip.releasePointerCapture(event.pointerId);
+    };
+
+    strip.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch' || event.button !== 0) return;
+      pressed = true;
+      capturing = false;
+      travel = 0;
+      startX = event.clientX;
+      startScroll = strip.scrollLeft;
+    });
+
+    strip.addEventListener('pointermove', (event) => {
+      if (!pressed) return;
+      const dx = event.clientX - startX;
+      travel = Math.max(travel, Math.abs(dx));
+      if (travel <= DRAG_THRESHOLD) return;
+
+      // Capture is taken here rather than on pointerdown, and that ordering is the whole
+      // trick: while an element holds pointer capture the browser retargets the click to
+      // *it*, so capturing up front silently kills click-to-select on the thumbnails.
+      // Taking it only once the pointer has actually travelled leaves a plain click alone.
+      if (!capturing) {
+        capturing = true;
+        // `is-dragging` turns off scroll snapping: mandatory snap fights every scrollLeft
+        // write and the strip judders instead of following the cursor.
+        strip.classList.add('is-dragging');
+        try {
+          strip.setPointerCapture(event.pointerId);
+        } catch {
+          /* no capture — pointermove on the strip still covers the common case */
+        }
+      }
+
+      strip.scrollLeft = startScroll - dx;
+    });
+
+    strip.addEventListener('pointerup', stopDrag);
+    strip.addEventListener('pointercancel', stopDrag);
+
+    // A drag that ends on a thumbnail still fires a click. Swallow it past a few pixels of
+    // travel so dragging the strip never swaps the featured photo by accident; capture
+    // phase so this runs before the thumbnail's own handler.
+    strip.addEventListener(
+      'click',
+      (event) => {
+        if (travel <= DRAG_THRESHOLD) return;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true,
+    );
+
+    strip.addEventListener('dragstart', (event) => event.preventDefault());
+  });
+</script>
+
+<style>
+  /* No scrollbar, and with it none of the hover-triggered scroll arrows Chrome paints on a
+     horizontally scrollable box. The affordances here are the drag cursor and the
+     deliberately clipped thumbnail at the edge, so the overlay chrome is noise on top of
+     the photography. Keyboard scrolling is unaffected. */
+  [data-thumbs] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  [data-thumbs]::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Paired with the `is-dragging` class the script toggles. Kept in CSS rather than as
+     inline styles so the snap rule and the cursor change stay in one place. */
+  [data-thumbs].is-dragging {
+    scroll-snap-type: none;
+    cursor: grabbing;
+    user-select: none;
+  }
+</style>

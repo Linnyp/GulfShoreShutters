@@ -1,0 +1,16 @@
+{
+  // Workers runtime, not the browser: the DOM lib must stay out or its globals
+  // collide with @cloudflare/workers-types.
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true
+  },
+  "include": ["**/*.ts"]
+}

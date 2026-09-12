@@ -1,0 +1,115 @@
+---
+import { howItWorks } from '../data/site';
+---
+
+<!--
+  The retailer/manufacturer split is exactly the thing a competitor would blur. Stating it
+  plainly is what turns the structure into the proof — and it pre-empts the objection a
+  customer would otherwise discover on install day.
+-->
+<section id="who" class="bg-olive-900 py-20 text-ivory-100 md:py-28">
+  <div class="container-page">
+    <div class="max-w-2xl" data-reveal>
+      <p class="eyebrow text-gold-400">Who Does What</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-ivory-50 sm:text-5xl">
+        One person to talk to. A thirty-year factory doing the technical work.
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-olive-200">
+        Most shutter companies are vague about who actually shows up. Here is the whole arrangement,
+        up front.
+      </p>
+    </div>
+
+    {/* The arrows are siblings of the <ol>, not children: an ordered list may only contain
+        list items. The wrapper carries the top margin so it boxes the row exactly, which is
+        what the arrows are positioned against. */}
+    <div class="flow relative mt-14">
+      <ol class="grid gap-6 md:grid-cols-3" data-reveal-group>
+        {
+          howItWorks.map((stage, index) => (
+            <li data-reveal class="flex h-full flex-col rounded-2xl bg-ivory-50/5 p-7 ring-1 ring-ivory-100/10">
+              <div class="flex items-center gap-3">
+                <span class="font-display text-3xl text-gold-400">{String(index + 1).padStart(2, '0')}</span>
+                <span class="eyebrow text-olive-300">{stage.who}</span>
+              </div>
+              <h3 class="mt-4 font-display text-2xl text-ivory-50">{stage.title}</h3>
+              <p class="mt-3 leading-relaxed text-olive-200">{stage.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      {/* Decorative only — the 01/02/03 numbers already carry the order for anyone not
+          seeing the page. Three columns only, so they are hidden below md where the cards
+          stack and reading order is obvious. */}
+      <div class="flow-arrow flow-arrow--over hidden md:block" aria-hidden="true" data-reveal>
+        <svg
+          class="h-full w-full text-gold-400/80"
+          viewBox="0 0 100 40"
+          preserveAspectRatio="none"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          {/* non-scaling-stroke: the box is stretched to the column span, and without it
+              the line would thin out horizontally as the viewport widens. */}
+          <path d="M0 34C22 2 78 2 100 28" vector-effect="non-scaling-stroke" />
+        </svg>
+        <svg class="absolute bottom-0 right-0 h-4 w-4 translate-x-1/2 text-gold-400/80" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 15 1.5 4h13z" />
+        </svg>
+      </div>
+
+      <div class="flow-arrow flow-arrow--under hidden md:block" aria-hidden="true" data-reveal>
+        <svg
+          class="h-full w-full text-gold-400/80"
+          viewBox="0 0 100 40"
+          preserveAspectRatio="none"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M0 6C22 38 78 38 100 12" vector-effect="non-scaling-stroke" />
+        </svg>
+        <svg class="absolute right-0 top-0 h-4 w-4 translate-x-1/2 rotate-180 text-gold-400/80" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 15 1.5 4h13z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * Arrow geometry, in terms of the grid it sits on: three equal columns with a 1.5rem gap
+   * (`gap-6`). A column is a third of what is left after the two gaps, so a card's centre
+   * line is half a column in from its own edge — which is where each arc has to start and
+   * end. Change the column count or the gap on the <ol> and these have to change with it.
+   */
+  .flow {
+    --flow-gap: 1.5rem;
+    --flow-col: calc((100% - 2 * var(--flow-gap)) / 3);
+    --flow-half: calc(var(--flow-col) / 2);
+  }
+
+  .flow-arrow {
+    position: absolute;
+    height: 3.25rem;
+  }
+
+  /* Card 1 top-centre, arcing over the gap to card 2. */
+  .flow-arrow--over {
+    bottom: 100%;
+    left: var(--flow-half);
+    width: calc(50% - var(--flow-half));
+  }
+
+  /* Card 2 bottom-centre, arcing under the gap to card 3. */
+  .flow-arrow--under {
+    top: 100%;
+    left: 50%;
+    width: calc(50% - var(--flow-half));
+  }
+</style>

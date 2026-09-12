@@ -1,0 +1,48 @@
+---
+import { faqs, business } from '../data/site';
+---
+
+<section id="faq" class="bg-ivory-50 py-20 md:py-28">
+  <div class="container-page grid gap-12 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-16">
+    <div data-reveal>
+      <p class="eyebrow text-olive-500">Questions</p>
+      <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
+        Answered before you ask
+      </h2>
+      <p class="mt-6 leading-relaxed text-olive-700">
+        Including the ones most companies would rather you did not ask until after the deposit.
+      </p>
+      <a
+        href={`tel:${business.phoneHref}`}
+        data-cta="faq-call"
+        class="mt-6 inline-block font-semibold text-olive-600 underline underline-offset-4 hover:text-olive-800"
+      >
+        Ask us anything at {business.phone}
+      </a>
+    </div>
+
+    <div class="divide-y divide-olive-200 border-y border-olive-200" data-reveal>
+      {
+        faqs.map((faq) => (
+          <details class="group py-5" name="faq">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 text-left font-display text-xl text-olive-900">
+              {faq.q}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                class="h-5 w-5 shrink-0 text-gold-500 transition group-open:rotate-45"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </summary>
+            <p class="mt-3 max-w-2xl leading-relaxed text-olive-700">{faq.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
