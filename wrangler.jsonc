@@ -1,0 +1,30 @@
+/**
+ * Worker config for the deployed site.
+ *
+ * This file existing is load-bearing. Without it, `wrangler deploy` falls into its
+ * framework auto-setup wizard, which in a CI build auto-answers "yes" and runs
+ * `astro add cloudflare` — installing the SSR adapter and rebuilding the project.
+ * That adapter replaces the build-time sharp image service with Cloudflare Images
+ * (`/_image?href=…` resolved per request), so the static build's pre-optimized
+ * files are discarded and every image 404s against a binding that does not exist.
+ * The build log still reads green. See `image.service` in astro.config.mjs, which
+ * is the other half of keeping image optimization at build time where it belongs.
+ *
+ * Static assets are served first; anything that is not a file in ./dist falls
+ * through to the Worker, which is how /api/quote is reached.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gulfshoreshutters",
+  "main": "worker/index.ts",
+  // Capped at what the pinned wrangler's workerd binary supports; a later date makes
+  // `wrangler dev` refuse to start ("newest date supported by this server binary").
+  "compatibility_date": "2026-09-10",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -81,13 +81,22 @@ back with `npx wrangler d1 execute gulfshore-leads --remote --command "SELECT * 
 
 ### 3. Deploy
 
+Deployed as a Worker with static assets, configured by `wrangler.jsonc`: `dist` is
+served from the `ASSETS` binding, and anything that is not a file there falls through
+to `worker/index.ts`, which is how `/api/quote` is reached.
+
 ```bash
-npx wrangler pages project create gulfshore-shutters
-npm run deploy
+npm run deploy     # astro build && wrangler deploy
 ```
 
-Or connect the Git repo in the Pages dashboard with build command `npm run build` and
-output directory `dist`.
+The Git integration runs the same thing on push to `main`. Bindings (`LEADS`) and the
+environment variables above are set in the dashboard, not in `wrangler.jsonc`.
+
+> **Do not delete `wrangler.jsonc`.** Without a config, `wrangler deploy` runs its
+> framework setup wizard, which auto-answers "yes" in CI and runs `astro add cloudflare`
+> — swapping the static build for the SSR adapter and routing images through a
+> Cloudflare Images binding that is not enabled. Every image then 404s while the build
+> log still reports success.
 
 ## Before launch
 
