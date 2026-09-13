@@ -104,9 +104,15 @@ const items = gallery.map(({ file, alt }) => {
               data-index={index}
               data-active={index === 0 ? '' : undefined}
               aria-pressed={index === 0 ? 'true' : 'false'}
+              {/* The label is an attribute rather than an `sr-only` span on purpose.
+                  `sr-only` is position:absolute, and with no positioned ancestor inside
+                  this scroller its containing block is the page — so it escapes the
+                  strip's overflow clipping and drags the document width out to the far
+                  end of the thumbnail row. On a phone that is ~230px of blank space to
+                  the right of every section. */}
+              aria-label={`Show photo ${index + 1} of ${items.length}: ${image.alt}`}
               class="group h-20 w-24 shrink-0 snap-start overflow-hidden rounded-xl opacity-60 ring-1 ring-olive-900/10 transition data-[active]:opacity-100 data-[active]:ring-2 data-[active]:ring-gold-500 hover:opacity-100 sm:h-24 sm:w-28"
             >
-              <span class="sr-only">{`Show photo ${index + 1} of ${items.length}: ${image.alt}`}</span>
               <Image
                 src={image.src}
                 alt=""

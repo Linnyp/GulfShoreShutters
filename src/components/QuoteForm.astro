@@ -56,7 +56,11 @@ const labelClass = 'block text-sm font-semibold text-olive-800';
       </ul>
     </div>
 
-    <div class="rounded-2xl bg-ivory-50 p-6 shadow-lg sm:p-8" data-reveal>
+    {/* Full-bleed below sm. Turnstile's flexible widget will not render narrower than
+        300px, and 300 + the card padding exceeds the container's content width on a 360px
+        phone — which pushed the whole grid column wider than the screen. Pulling the card
+        out over the container's own padding buys back the 40px it needs. */}
+    <div class="-mx-5 rounded-2xl bg-ivory-50 p-6 shadow-lg sm:mx-0 sm:p-8" data-reveal>
       <form id="quote-form" action="/api/quote" method="post" novalidate class="space-y-5">
         <!-- Honeypot: hidden from users, irresistible to naive bots. -->
         <div class="absolute left-[-9999px]" aria-hidden="true">
@@ -181,7 +185,12 @@ const labelClass = 'block text-sm font-semibold text-olive-800';
           <textarea id="message" name="message" rows="4" class={`mt-2 ${fieldClass}`}></textarea>
         </div>
 
-        <div class="cf-turnstile" data-sitekey={siteKey} data-theme="light" data-size="flexible"></div>
+        {/* The widget refuses to render below 300px wide, which on a 320px phone is more
+            than the card can give it. Scrolling it is contained; letting it size the
+            layout is not — without this it widens the grid column and, with it, the page. */}
+        <div class="overflow-x-auto">
+          <div class="cf-turnstile" data-sitekey={siteKey} data-theme="light" data-size="flexible"></div>
+        </div>
 
         <button
           type="submit"
