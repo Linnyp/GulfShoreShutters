@@ -205,8 +205,8 @@ export const faqs = [
     a: `${manufacturer.name} — the same people who build them. We handle the consultation, the design and the initial measure for pricing; Devlin does the final measure and the installation. We would rather you know that now than discover it on install day.`,
   },
   {
-    q: 'You are a brand-new company. Why should I trust you?',
-    a: `Fair question, and the honest answer is that the company is new but the shutters are not. They are built by ${manufacturer.name} in ${manufacturer.city}, who have been manufacturing shutters here for over ${manufacturer.yearsInBusiness} years. You get a new company's responsiveness with a thirty-year factory's product.`,
+    q: 'I have not heard of you. Why should I trust you with a custom order?',
+    a: `Fair question, and the honest answer is that our name is new here but the shutters are not. They are built by ${manufacturer.name} in ${manufacturer.city}, who have been manufacturing shutters here for over ${manufacturer.yearsInBusiness} years — and one of their owners is family. You get a small company that answers the phone, backed by a thirty-year factory's product, warranty and installers.`,
   },
   {
     q: 'Will wood warp in Florida humidity?',

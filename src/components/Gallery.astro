@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { gallery, business } from '../data/site';
+import { gallery, business, manufacturer } from '../data/site';
 
 /* Astro needs a statically analysable glob to fingerprint and optimize these, so the
    data file carries filenames and the resolution happens here. */
@@ -38,8 +38,9 @@ const items = gallery.map(({ file, alt }) => {
         Southwest Florida homes, shot on the day.
       </p>
       <p class="mt-4 max-w-xl leading-relaxed text-olive-600">
-        We are a new company and we are collecting our first reviews now — so rather than borrow
-        anyone else&rsquo;s, the work here is what we are asking you to judge us on.
+        Wood and vinyl, full height and caf&eacute; style, sliders and specialty shapes. Every one
+        designed on site, built in {manufacturer.city}, and hung by the people who made it &mdash; the
+        work is what we are asking you to judge us on.
       </p>
 
       <div class="mt-9 flex flex-col gap-3 sm:flex-row">
