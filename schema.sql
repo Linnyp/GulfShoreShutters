@@ -1,10 +1,16 @@
 -- D1 lead store. Optional but recommended: it means a Resend outage or a
 -- mistyped forwarding address can never lose a paying customer.
 --
---   npx wrangler d1 create gulfshore-leads
---   npx wrangler d1 execute gulfshore-leads --remote --file=./schema.sql
+--   npx wrangler d1 create leadslist
+--   npx wrangler d1 execute leadslist --remote --file=./schema.sql
 --
--- Then bind it in the Pages project as `LEADS` (Settings → Functions → D1 bindings).
+-- Then bind it as `LEADS` in wrangler.jsonc, using the database_id printed by `d1 create`:
+--
+--   "d1_databases": [
+--     { "binding": "LEADS", "database_name": "leadslist", "database_id": "<id>" }
+--   ]
+--
+-- Not in the dashboard: `wrangler deploy` removes bindings that are not in the config.
 
 -- If the table already exists from an earlier deploy, add the newer column instead:
 --   ALTER TABLE leads ADD COLUMN quote_type TEXT;

@@ -1,8 +1,9 @@
 ---
 import { business, serviceAreas, pricing, warranty, leadTime } from '../data/site';
 
-// Cloudflare's documented always-passes test key. Override in .env / the Pages
-// dashboard with the real site key before launch.
+// Cloudflare's documented always-passes test key. Override with the real site key
+// before launch: in .env locally, and as a Workers Builds build variable in production.
+// It is inlined at build time, so a runtime Worker variable has no effect.
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA';
 
 const fieldClass =

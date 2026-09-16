@@ -6,10 +6,13 @@
  * ./dist before the Worker is consulted, so in practice this handles /api/quote and
  * nothing else.
  *
- * The handler itself still lives in functions/api/quote.ts in Pages-Function shape.
- * It only ever reads `request` and `env` off its context, so it is called directly
- * rather than duplicated here — one copy of the validation, Turnstile check and
- * Resend call, whichever way the project is deployed.
+ * The handler itself lives in functions/api/quote.ts, still using the Pages Function
+ * signature from when the site was deployed to Pages. It only ever reads `request` and
+ * `env` off its context, so it is called directly from here instead of being rewritten.
+ *
+ * Bindings (`LEADS`) are declared in wrangler.jsonc and secrets are set with
+ * `wrangler secret put`. Anything added only in the dashboard is lost on the next
+ * `wrangler deploy`.
  */
 import { onRequestPost, onRequest } from '../functions/api/quote';
 
@@ -27,8 +30,8 @@ export default {
     const { pathname } = new URL(request.url);
 
     if (pathname === '/api/quote') {
-      // The Pages context carries params/data/next as well; the handler reads
-      // neither, so a cast keeps this to the two fields it actually uses.
+      // PagesFunction's context type also expects params/data/next; the handler
+      // reads none of them, so a cast keeps this to the fields it actually uses.
       const context = { request, env, ctx } as unknown as Parameters<typeof onRequestPost>[0];
       return request.method === 'POST' ? onRequestPost(context) : onRequest(context);
     }

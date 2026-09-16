@@ -14,17 +14,27 @@
  * through to the Worker, which is how /api/quote is reached.
  */
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "gulfshoreshutters",
-  "main": "worker/index.ts",
-  // Capped at what the pinned wrangler's workerd binary supports; a later date makes
-  // `wrangler dev` refuse to start ("newest date supported by this server binary").
-  "compatibility_date": "2026-09-10",
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS"
-  },
-  "observability": {
-    "enabled": true
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "gulfshoreshutters",
+	"main": "worker/index.ts",
+	// Capped at what the pinned wrangler's workerd binary supports; a later date makes
+	// `wrangler dev` refuse to start ("newest date supported by this server binary").
+	"compatibility_date": "2026-09-10",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	// Lead archive. The binding name must stay `LEADS` — functions/api/quote.ts reads
+	// env.LEADS and silently skips the insert when it is missing. See schema.sql.
+	"d1_databases": [
+		{
+			"binding": "LEADS",
+			"database_name": "leadslist",
+			"database_id": "94cdefed-d5ca-4d07-be03-43159314e4e9",
+			"remote": true
+		}
+	]
 }

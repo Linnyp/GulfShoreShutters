@@ -1,8 +1,11 @@
 /**
  * POST /api/quote — lead capture for the quote form.
  *
- * Runs as a Cloudflare Pages Function (Workers runtime) alongside the static
- * build, so there is no server to keep warm and no cold start.
+ * Runs inside the site's Cloudflare Worker: worker/index.ts imports these
+ * handlers and calls them for /api/quote, so there is no server to keep warm and
+ * no cold start. The Pages Function signature (`PagesFunction`, `onRequestPost`)
+ * is left over from when the site was deployed to Pages; the site is now deployed
+ * to Workers and nothing runs this file as a Pages Function.
  *
  * Order of operations matters: cheap local checks first (honeypot, timing,
  * field validation), then the Turnstile round-trip, then the email send. That
@@ -243,8 +246,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 };
 
 /**
- * Without this, Pages falls back to the static asset handler and a GET to
- * /api/quote quietly serves the homepage HTML.
+ * Every method other than POST. The Worker sends those here, so a GET to
+ * /api/quote gets a clear 405 rather than an empty or misleading response.
  */
 export const onRequest: PagesFunction<Env> = async ({ request }) => {
   if (request.method === 'POST') return fail('Unhandled POST.', 500);

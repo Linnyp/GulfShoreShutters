@@ -1,9 +1,10 @@
-!.env.example
 *.log
 .DS_Store
 .astro/
 .env
 .env.*
+# Must come after `.env.*` — gitignore's last matching rule wins.
+!.env.example
 .wrangler/
 dist
 dist/

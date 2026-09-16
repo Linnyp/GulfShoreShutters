@@ -1,8 +1,13 @@
 # Gulfshore Shutters
 
 One-page marketing site with a lead-capture form. Astro (static output) + Tailwind v4,
-deployed to Cloudflare Pages, with the form handled by a Pages Function on the Workers
-runtime.
+deployed to Cloudflare as a Worker with static assets. The built site is served from the
+Worker's assets binding; the Worker itself only handles the quote form endpoint.
+
+This project is **not** on Cloudflare Pages. Cloudflare is folding Pages into Workers, and
+several things behave differently between the two — where bindings and variables are
+configured most of all. When following Cloudflare docs or dashboard tutorials, use the
+Workers version.
 
 Current payload for the homepage: **~9 KB HTML + ~6 KB CSS, gzipped, with zero
 first-party JavaScript files.** The small amount of JS (mobile nav, form submit) is
@@ -12,16 +17,16 @@ inlined into the HTML by Astro; the only external script is Cloudflare Turnstile
 
 | Command | Does |
 | --- | --- |
-| `npm run dev` | Astro dev server on `localhost:4321` (Pages Functions **not** served) |
+| `npm run dev` | Astro dev server on `localhost:4321` (the Worker and `/api/quote` are **not** served) |
 | `npm run build` | Static build into `dist/` |
-| `npm run preview` | Serves `dist/` through the real Workers runtime — use this to test the form |
+| `npm run preview` | Builds, then runs `wrangler dev` — the real Workers runtime; use this to test the form |
 | `npm run check` | Type/template diagnostics for `src/` |
-| `npm run deploy` | Build and push to Cloudflare Pages |
+| `npm run deploy` | Build and `wrangler deploy` to Cloudflare Workers |
 
-`npm run dev` does not run `functions/`. To exercise the quote form locally, use
-`npm run build && npm run preview`.
+`npm run dev` does not run the Worker. To exercise the quote form locally, use
+`npm run preview`, which reads secrets from `.env`.
 
-Type-check the Functions separately, since they use the Workers lib rather than the DOM:
+Type-check the handler separately, since it uses the Workers lib rather than the DOM:
 
 ```bash
 npx tsc --noEmit -p functions/tsconfig.json
@@ -34,21 +39,29 @@ src/data/site.ts        All business copy — the one file to edit for text chan
 src/pages/index.astro   The page; composes the section components
 src/layouts/            Head, meta, LocalBusiness + FAQPage JSON-LD
 src/components/         Header, Hero, Services, Gallery, Process, Testimonials, Faq, QuoteForm, Footer
+worker/index.ts         Worker entry — routes /api/quote to the handler, everything else to assets
 functions/api/quote.ts  POST /api/quote — validation, spam checks, D1 write, email
-public/_headers         CSP and cache-control rules applied by Pages
+wrangler.jsonc          Worker config: entry point, assets directory, bindings
+public/_headers         CSP and cache-control rules, applied to static asset responses
 schema.sql              D1 table for the lead archive
 ```
+
+`functions/api/quote.ts` keeps the Pages Function handler signature (`PagesFunction`,
+`onRequestPost`) from when the site was on Pages. Nothing runs it as a Pages Function any
+more — `worker/index.ts` imports it and calls it directly. The directory name is historical.
 
 ## How the form works
 
 1. The form is a real `<form method="post" action="/api/quote">`. JS intercepts it for an
-   inline success state; if JS fails, the browser posts natively and the Function
+   inline success state; if JS fails, the browser posts natively and the handler
    redirects to `/thank-you/`.
-2. `functions/api/quote.ts` runs the cheap checks first — honeypot field, a
-   sub-3-second fill timer, then field validation — so bot traffic never costs an
-   outbound request.
-3. Turnstile is verified server-side against `siteverify`.
-4. The lead is written to D1 **before** the email is sent, so a Resend outage cannot
+2. Cloudflare serves any request matching a file in `dist/` without invoking the Worker.
+   `/api/quote` matches no file, so it reaches `worker/index.ts`, which passes it to the
+   handler in `functions/api/quote.ts`.
+3. The handler runs the cheap checks first — honeypot field, a sub-3-second fill timer,
+   then field validation — so bot traffic never costs an outbound request.
+4. Turnstile is verified server-side against `siteverify`.
+5. The lead is written to D1 **before** the email is sent, so a Resend outage cannot
    lose a customer. Without a D1 binding, a failed send returns a 502 telling the visitor
    to call.
 
@@ -60,9 +73,29 @@ wide open.
 
 ### 1. Environment variables
 
-Copy `.env.example` to `.env` for local work. In production set the same keys under
-Cloudflare Pages → Settings → Environment variables, marking `TURNSTILE_SECRET_KEY` and
-`RESEND_API_KEY` as encrypted.
+Copy `.env.example` to `.env` for local work; `wrangler dev` (via `npm run preview`) reads
+it. Production splits the keys by **when** they are read:
+
+**Runtime secrets** — read by the Worker on each request. Set them as secrets, which
+survive every deploy:
+
+```bash
+npx wrangler secret put TURNSTILE_SECRET_KEY
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put LEAD_TO_EMAIL
+npx wrangler secret put LEAD_FROM_EMAIL
+```
+
+Or in the dashboard: Workers & Pages → `gulfshoreshutters` → Settings → Variables and
+Secrets, with type **Secret**. Do not add them as plain-text variables there:
+`wrangler deploy` makes the Worker's variables match `wrangler.jsonc`, so plain-text values
+set only in the dashboard are removed on the next deploy. (The two email addresses are not
+sensitive; a `vars` block in `wrangler.jsonc` is also fine for them.)
+
+**Build variable** — `PUBLIC_TURNSTILE_SITE_KEY` is inlined into the HTML by `astro build`,
+so the Worker never reads it. For deploys from Git, set it under Settings → Build →
+Variables and secrets. For `npm run deploy` from a local machine, it comes from `.env`.
+If it is missing, the build silently falls back to Cloudflare's always-passes test key.
 
 - Turnstile keys: Cloudflare dashboard → Turnstile → add a widget for the domain.
 - `RESEND_API_KEY`: resend.com, then verify the sending domain (SPF + DKIM) or delivery
@@ -72,12 +105,24 @@ Cloudflare Pages → Settings → Environment variables, marking `TURNSTILE_SECR
 ### 2. Lead archive (recommended)
 
 ```bash
-npx wrangler d1 create gulfshore-leads
-npx wrangler d1 execute gulfshore-leads --remote --file=./schema.sql
+npx wrangler d1 create leadslist
+npx wrangler d1 execute leadslist --remote --file=./schema.sql
 ```
 
-Bind it to the Pages project as `LEADS` (Settings → Functions → D1 bindings). Read leads
-back with `npx wrangler d1 execute gulfshore-leads --remote --command "SELECT * FROM leads ORDER BY id DESC LIMIT 20"`.
+Then bind it in `wrangler.jsonc`, using the `database_id` printed by `d1 create`:
+
+```jsonc
+"d1_databases": [
+  { "binding": "LEADS", "database_name": "leadslist", "database_id": "<id>" }
+]
+```
+
+The binding belongs in `wrangler.jsonc`, not the dashboard. As with variables, a binding
+added only in the dashboard is dropped by the next `wrangler deploy`. The handler treats
+`LEADS` as optional, so this fails silently: leads stop being archived, and an email
+failure stops being caught.
+
+Read leads back with `npx wrangler d1 execute leadslist --remote --command "SELECT * FROM leads ORDER BY id DESC LIMIT 20"`.
 
 ### 3. Deploy
 
@@ -89,8 +134,8 @@ to `worker/index.ts`, which is how `/api/quote` is reached.
 npm run deploy     # astro build && wrangler deploy
 ```
 
-The Git integration runs the same thing on push to `main`. Bindings (`LEADS`) and the
-environment variables above are set in the dashboard, not in `wrangler.jsonc`.
+Workers Builds (the Git integration) runs the same thing on push to `main`. Its build
+command is `npm run build` and its deploy command is `npx wrangler deploy`.
 
 > **Do not delete `wrangler.jsonc`.** Without a config, `wrangler deploy` runs its
 > framework setup wizard, which auto-answers "yes" in CI and runs `astro add cloudflare`
