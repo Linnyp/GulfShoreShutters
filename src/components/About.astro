@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import ownerPhoto from '../assets/owner-hannah.png';
+import ownerPhoto from '../assets/owner-hannah.jpg';
 import { business, manufacturer } from '../data/site';
 ---
 
@@ -30,35 +30,37 @@ import { business, manufacturer } from '../data/site';
         widths={[352, 528, 704]}
         sizes="(min-width: 1024px) 22rem, (min-width: 640px) 20rem, 15rem"
         loading="lazy"
-        class="w-full rounded-2xl object-cover shadow-lg ring-1 ring-olive-900/10"
+        class="w-full rounded-2xl object-cover"
       />
     </div>
 
-    <div data-reveal>
+    {/* Centred on phones so the copy sits under the centred portrait; left-aligned from lg,
+        where the two columns sit side by side and a ragged left edge would read as a mistake. */}
+    <div class="text-center lg:text-left" data-reveal>
       <p class="eyebrow text-olive-500">About Us</p>
       <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
         Hi, I&rsquo;m Hannah. Shutters are the family business.
       </h2>
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-olive-700">
+      <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-olive-700 lg:mx-0">
         Gulf Shore Shutters is a small business in Cape Coral, and I run it. When you call, you get
         me. When someone comes to your house with full-size samples and a tape measure, that is me
         too — not a commissioned salesperson working a script, and not a different rep every time you
         have a question.
       </p>
-      <p class="mt-4 max-w-2xl leading-relaxed text-olive-700">
+      <p class="mx-auto mt-4 max-w-2xl leading-relaxed text-olive-700 lg:mx-0">
         Your shutters are built by {manufacturer.name} in {manufacturer.city}, and Devlin is family:
         my uncle is one of the owners. They have been manufacturing shutters here for over
         {manufacturer.yearsInBusiness} years, and their team does the final measure and the
         installation. So this is not a supplier I found and could walk away from — it is my family&rsquo;s
         factory, twenty minutes up the road, and my name goes on every job that leaves it.
       </p>
-      <p class="mt-4 max-w-2xl leading-relaxed text-olive-700">
+      <p class="mx-auto mt-4 max-w-2xl leading-relaxed text-olive-700 lg:mx-0">
         Shutters are the only thing we sell, so that is the only thing I have to be good at. You get
         one person who answers for the whole job &mdash; from the first phone call to the last panel
         hung &mdash; and a thirty-year factory&rsquo;s product behind it.
       </p>
 
-      <div class="mt-8 flex flex-wrap items-center gap-3">
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
         <a
           href="#quote"
           data-cta="about-quote"

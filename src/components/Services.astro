@@ -90,7 +90,9 @@ const materialCards = materials.map((material) => {
 
 <section id="shutters" class="bg-ivory-50 py-20 md:py-28">
   <div class="container-page">
-    <div class="max-w-2xl" data-reveal>
+    {/* Right-aligned, and pushed to the right edge with ml-auto: text-right on a left-pinned
+        max-w-2xl block would strand the lines mid-page instead of against the margin. */}
+    <div class="ml-auto max-w-2xl text-right" data-reveal>
       <p class="eyebrow text-olive-500">What We Do</p>
       <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
         A specialist, not a catalogue

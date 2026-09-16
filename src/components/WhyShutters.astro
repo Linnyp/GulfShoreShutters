@@ -23,8 +23,11 @@ const reasons = [
 ---
 
 <section class="bg-ivory-100 py-20 md:py-28">
-  <div class="container-page grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,24rem)] lg:gap-16">
-    <div data-reveal>
+  {/* Image column first from lg, copy second. The DOM order is left alone so the stacked
+      phone layout still leads with the heading rather than the photo; only the lg columns
+      swap, via the order utilities below. */}
+  <div class="container-page grid items-center gap-12 lg:grid-cols-[minmax(0,24rem)_1fr] lg:gap-16">
+    <div data-reveal class="lg:order-2">
       <p class="eyebrow text-olive-500">Why Shutters</p>
       <h2 class="mt-4 font-display text-4xl leading-tight tracking-tight text-olive-900 sm:text-5xl">
         Buy once, and it stays with the house
@@ -54,7 +57,7 @@ const reasons = [
       widths={[380, 560, 760]}
       sizes="(min-width: 1024px) 24rem, (min-width: 640px) 20rem, 16rem"
       loading="lazy"
-      class="mx-auto w-full max-w-[16rem] rounded-2xl object-cover shadow-lg ring-1 ring-olive-900/10 sm:max-w-xs lg:max-w-none"
+      class="mx-auto w-full max-w-[16rem] rounded-2xl object-cover shadow-lg ring-1 ring-olive-900/10 sm:max-w-xs lg:order-1 lg:max-w-none"
     />
   </div>
 </section>
